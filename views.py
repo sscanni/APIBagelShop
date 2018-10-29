@@ -8,7 +8,7 @@ from flask_httpauth import HTTPBasicAuth
 
 auth = HTTPBasicAuth() 
 
-engine = create_engine('sqlite:///bagelShop.db')
+engine = create_engine('sqlite:///bagelShop.db?check_same_thread=False')
 
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
@@ -29,6 +29,8 @@ def verify_password(username, password):
 def new_user():
     username = request.json.get('username')
     password = request.json.get('password')
+    # print ("username=%s" % (username))
+    # print ("password=%s" % (password))
     if username is None or password is None:
         abort(400) # missing arguments
     if session.query(User).filter_by(username = username).first() is not None:
@@ -41,6 +43,12 @@ def new_user():
     session.commit()
     return jsonify({ 'username': user.username }), 201, {'Location': url_for('get_user', id = user.id, _external = True)}
 
+@app.route('/users/<int:id>')
+def get_user(id):
+    user = session.query(User).filter_by(id=id).one()
+    if not user:
+        abort(400)
+    return jsonify({'username': user.username})
 
 @app.route('/bagels', methods = ['GET','POST'])
 #protect this route with a required login
@@ -58,8 +66,6 @@ def showAllBagels():
         session.add(newBagel)
         session.commit()
         return jsonify(newBagel.serialize)
-
-
 
 if __name__ == '__main__':
     app.debug = True

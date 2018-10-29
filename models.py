@@ -36,7 +36,7 @@ class Bagel(Base):
 	        }
 
 
-engine = create_engine('sqlite:///bagelShop.db')
+engine = create_engine('sqlite:///bagelShop.db?check_same_thread=False')
  
 
 Base.metadata.create_all(engine)
